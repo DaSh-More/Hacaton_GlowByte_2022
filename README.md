@@ -1,2 +1,2 @@
-# Hacaton GlowByte 2022
+# Hacatone GlowByte 2022
 _Команда №15_
