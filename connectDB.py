@@ -1,3 +1,5 @@
+import datetime
+
 import psycopg2
 
 
@@ -30,3 +32,24 @@ class DataConn:
 #         cursor.execute('SELECT * FROM main.rides LIMIT 10')
 #         for i in cursor:
 #             print(i)
+
+def get_movement_end_cancel(time):
+    movements = []
+    diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
+                   'host': 'de-edu-db.chronosavant.ru'}
+    with DataConn(**diction) as cursor:
+        cursor.execute("SELECT * FROM main.movement WHERE event = 'END' OR event = 'CANCEL'")
+        for move in cursor:
+            if move[4] > time:
+                move_pars = [
+                              {
+                              "car_plate_num": move[1],
+                              "ride": move[2],
+                              "event": move[3],
+                              "date": move[4]
+                              }
+                            ]
+                movements.append(move_pars)
+
+        return movements
+
