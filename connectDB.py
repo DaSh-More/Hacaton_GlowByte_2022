@@ -1,14 +1,32 @@
 import psycopg2
 
 
-def connect_to_DB(kwargs: dict):
-    '''
-    Connecting to a database with authorization data
-    :param kwargs: dictionary with authorization data
-    :return: psycopg2 Session
-    '''
-    conn = psycopg2.connect(dbname=kwargs['dbname'], user=kwargs['user'],
-                            password=kwargs['password'], host=kwargs['host'])
-    cursor = conn.cursor()
-    cursor.execute('SELECT * FROM main.rides')
-    return cursor
+class DataConn:
+
+    def __init__(self, **kwargs):
+        self.db_info = kwargs
+
+    def __enter__(self):
+        """
+        Открываем подключение с базой данных.
+        """
+        self.conn = psycopg2.connect(dbname=self.db_info['dbname'], user=self.db_info['user'],
+                                     password=self.db_info['password'], host=self.db_info['host'])
+        return self.conn.cursor()
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """
+        Закрываем подключение.
+        """
+        self.conn.close()
+        if exc_val:
+            raise
+
+
+# if __name__ == '__main__':
+#     diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
+#                'host': 'de-edu-db.chronosavant.ru'}
+#     with DataConn(**diction) as cursor:
+#         cursor.execute('SELECT * FROM main.rides LIMIT 10')
+#         for i in cursor:
+#             print(i)
