@@ -1,0 +1,23 @@
+{
+  "ftp": {
+    "host": "de-edu-db.chronosavant.ru",
+    "user": "etl_tech_user",
+    "passwd": "etl_tech_user_password"
+  },
+  "input_db": {
+    "host": "de-edu-db.chronosavant.ru",
+    "port": 5432,
+    "dbname": "taxi",
+    "schema": "main",
+    "user": "etl_tech_user",
+    "password": "etl_tech_user_password"
+  },
+  "output_db": {
+    "host": "de-edu-db.chronosavant.ru",
+    "port": 5432,
+    "dbname": "dwh",
+    "schema": "dwh_volgograd",
+    "user": "dwh_volgograd",
+    "password": "dwh_volgograd_3xDYP7jG"
+  }
+}
