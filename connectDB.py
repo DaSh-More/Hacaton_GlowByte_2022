@@ -24,15 +24,6 @@ class DataConn:
         if exc_val:
             raise
 
-
-# if __name__ == '__main__':
-#     diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
-#                'host': 'de-edu-db.chronosavant.ru'}
-#     with DataConn(**diction) as cursor:
-#         cursor.execute('SELECT * FROM main.rides LIMIT 10')
-#         for i in cursor:
-#             print(i)
-
 def get_movement_end_cancel(time):
     movements = []
     diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
@@ -41,15 +32,66 @@ def get_movement_end_cancel(time):
         cursor.execute("SELECT * FROM main.movement WHERE event = 'END' OR event = 'CANCEL'")
         for move in cursor:
             if move[4] > time:
-                move_pars = [
-                              {
+                move_pars = {
                               "car_plate_num": move[1],
                               "ride": move[2],
                               "event": move[3],
                               "date": move[4]
                               }
-                            ]
                 movements.append(move_pars)
+        print(move)
 
         return movements
 
+# get_movement_end_cancel(datetime.datetime.today() - datetime.timedelta(2))
+
+def get_rides(cursor):
+    diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
+               'host': 'de-edu-db.chronosavant.ru'}
+    # with DataConn(**diction) as cursor:
+    cursor.execute("SELECT * FROM main.rides WHERE ride_id in (SELECT ride FROM main.movement WHERE event in ('END', 'CANCEL'))")
+    curs = cursor.fetchall()
+    curs_dict = {}
+    for i in curs:
+        curs_dict[i[0]] = i
+
+    cursor.execute("SELECT * FROM main.movement WHERE ride in (SELECT ride FROM main.movement WHERE event in ('END', 'CANCEL'))")
+
+
+    movements = []
+    for move in cursor:
+        move_pars = {
+                      "ride_id": move[2],
+                        "point_from_txt":curs_dict[move[2]][4],
+                        "point_to_txt":curs_dict[move[2]][5],
+                         "distance_val":curs_dict[move[2]][6],
+                          "price_amt":curs_dict[move[2]][7],
+                          "client_phone_num":curs_dict[move[2]][2],
+                        "car_plate_num": move[1],
+                         "driver_pers_num":"",
+                          "ride_arrival_dt":"",
+                          "ride_end_dt":"",
+                          "ride_start_dt":""
+                      }
+        if move[3] == 'READY':
+            move_pars["ride_arrival_dt"] = move[4]
+        elif move[3] == 'END' or move[3] == 'CANCEL':
+            move_pars["ride_end_dt"] = move[4]
+        elif move[3] == 'BEGIN':
+            move_pars["ride_start_dt"] = move[4]
+        movements.append(move_pars)
+    return movements
+
+
+
+
+diction = {'dbname': 'taxi', 'user': 'etl_tech_user', 'password': 'etl_tech_user_password',
+               'host': 'de-edu-db.chronosavant.ru'}
+with DataConn(**diction) as cursor:
+    print(get_rides(cursor)[0])
+
+
+##################################################
+####################
+                    #################
+                                     #############
