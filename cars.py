@@ -3,7 +3,7 @@ import datetime
 from connectDB import DataConn
 
 
-def new_cars(time, cursor):
+def get_cars(time, cursor):
     """
     Возвращает словарь с информацией о машинах 
     у которых дата регистрации или техосмотра позже указанной
@@ -46,7 +46,7 @@ def main():
         data = json.load(f)['input_db']
     date = datetime.datetime.today() - datetime.timedelta(days=2)
     with DataConn(**data) as cursor:
-        pprint(new_cars(date, cursor))
+        pprint(get_cars(date, cursor))
 
 
 if __name__ == "__main__":
