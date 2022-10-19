@@ -38,6 +38,22 @@ def files_names(last_date: datetime) -> list:
     return dates
 
 
+def ftp_connect(connect_ftp):
+    """
+    Возвращает соединение по ftp :
+
+    Args:
+        connect_ftp (dict): Словарь с данными для подключения
+
+    Returns:
+        FTP: Объект для работы с подключением
+    """
+    ftp = FTP(**connect_ftp)
+    ftp.prot_p()
+    ftp.cwd('payments')
+    return ftp
+
+
 def get_payments_lists(connect_data: dict, last_date: datetime) -> list:
     """
     Данные о плетежах начиная с указанной даты
@@ -54,13 +70,18 @@ def get_payments_lists(connect_data: dict, last_date: datetime) -> list:
 
     def add_file(file):
         files.append(file.decode('utf8'))
-    with FTP(**connect_data) as ftp:
-        ftp.prot_p()
-        ftp.cwd('payments')
-        # Получаем файлы с указанной даты
-        for file_name in files_names(last_date):
-            ftp.retrbinary('RETR '+file_name, add_file)
-        data = []
+    ftp = ftp_connect(connect_data)
+    exists_files = ftp.nlst()
+    # Получаем файлы с указанной даты
+    for file_name in files_names(last_date):
+        if file_name in exists_files:
+            try:
+                ftp.retrbinary('RETR ' + file_name, add_file)
+            except EOFError:
+                # Если ошибка подключения, переподключаемся
+                ftp = ftp_connect(connect_data)
+                ftp.retrbinary('RETR ' + file_name, add_file)
+    data = []
     # Добавляем в словарь
     for file in files:
         data = csv2json(file, data)
